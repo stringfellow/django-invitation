@@ -26,13 +26,14 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'urls'
 TEMPLATE_DIRS = (os.path.join(ROOT_PATH, 'templates'),)
 INSTALLED_APPS = (
-    'invitation',
-    'registration',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
     'django.contrib.admin',
+    'django.contrib.sites',
+    'south',
+    'invitation',
+    'registration',
 )
 
 INVITE_MODE = True
