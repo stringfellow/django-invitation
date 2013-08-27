@@ -31,8 +31,12 @@ if getattr(settings, 'INVITATION_USE_ALLAUTH', False):
 else:    
     from registration.models import SHA1_RE
 
-site = Site.objects.get_current()
-root_url = 'http://%s' % site.domain
+if Site._meta.installed:
+    site = Site.objects.get_current()
+    root_url = 'http://%s' % site.domain
+else:
+    site = None
+    root_url = 'http://localhost'
     
 class InvitationKeyManager(models.Manager):
     def get_key(self, invitation_key):
