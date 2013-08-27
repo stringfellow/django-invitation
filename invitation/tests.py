@@ -114,7 +114,7 @@ class InvitationTestCaseAllauth(InvitationTestCase):
         self.saved_socialaccount_providers = settings.SOCIALACCOUNT_PROVIDERS
         settings.SOCIALACCOUNT_PROVIDERS = {}   
 
-        self.facebook_app = SocialApp(site=Site.objects.get_current(), provider='facebook', name='test', key='abc', secret='def')
+        self.facebook_app = SocialApp(provider='facebook', name='test', key='abc', secret='def')
         self.facebook_app.save()
         
         
