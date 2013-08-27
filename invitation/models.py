@@ -31,12 +31,15 @@ if getattr(settings, 'INVITATION_USE_ALLAUTH', False):
 else:    
     from registration.models import SHA1_RE
 
-if Site._meta.installed:
-    site = Site.objects.get_current()
-    root_url = 'http://%s' % site.domain
-else:
-    site = None
-    root_url = 'http://localhost'
+try:
+    if Site._meta.installed:
+        site = Site.objects.get_current()
+        root_url = 'http://%s' % site.domain
+    else:
+        site = None
+        root_url = 'http://localhost'
+except:
+    pass
     
 class InvitationKeyManager(models.Manager):
     def get_key(self, invitation_key):
@@ -147,7 +150,6 @@ class InvitationKey(models.Model):
                     'expiration_days': settings.ACCOUNT_INVITATION_DAYS,
                     'from_user': self.from_user,
                     'sender_note': sender_note,
-                    'site': site,
                     'root_url': root_url,
                     'expiration_date': exp_date,
                     'recipient': self.recipient,
