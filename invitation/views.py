@@ -4,10 +4,19 @@ from django.template.loader import render_to_string, get_template
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.sites.models import Site
+from django.contrib.sites.models import Site, RequestSite
+
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.utils.safestring import mark_safe
+
+def get_site(request):
+    site = None
+    if Site._meta.installed:
+        site = Site.objects.get_current()
+    else:
+        site = RequestSite(request)
+    return site
 
 if getattr(settings, 'INVITATION_USE_ALLAUTH', False):
     from allauth.socialaccount.views import signup as allauth_signup
@@ -113,7 +122,7 @@ invite = login_required(invite)
 
 @staff_member_required
 def send_bulk_invitations(request, success_url=None):
-    current_site = Site.objects.get_current()
+    current_site = get_site(request)
     if request.POST.get('post'):
         to_emails = [(e.split(',')[0].strip(),e.split(',')[1].strip() or None,e.split(',')[2].strip() or None) if e.find(',')+1 else (e.strip() or None, None, None) for e in request.POST['to_emails'].split(';')]
         #to_emails = [(e.split(',')[0],e.split(',')[1]) if e.find(',') else tuple('',e) for e in request.POST['to_emails'].split(';')]
@@ -157,7 +166,7 @@ def token(request, key):
     token is returned or else a token image marked invalid is returned.
     '''
     print  '---token'
-    site = Site.objects.get_current()
+    site = get_site(request)
     scheme = 'http'
     if request.is_secure():
         scheme = 'https'
