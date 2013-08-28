@@ -58,6 +58,7 @@ class InvitationTestCase(TestCase):
     used to exercise various parts of the application.
     
     """
+    fixtures = ['testserver.json']
     def setUp(self):        
         self.sample_user = User.objects.create_user(username='alice',
                                                     password='secret',
