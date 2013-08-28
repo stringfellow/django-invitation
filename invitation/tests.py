@@ -17,7 +17,7 @@ getting django-invitation running in the default setup, to wit:
 """
 
 import datetime
-import sha
+from hashlib import sha1 
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -115,7 +115,7 @@ class InvitationTestCaseAllauth(InvitationTestCase):
         self.saved_socialaccount_providers = settings.SOCIALACCOUNT_PROVIDERS
         settings.SOCIALACCOUNT_PROVIDERS = {}   
 
-        self.facebook_app = SocialApp(site=Site.objects.get_current(), provider='facebook', name='test', key='abc', secret='def')
+        self.facebook_app = SocialApp(provider='facebook', name='test', key='abc', secret='def')
         self.facebook_app.save()
         
         
@@ -320,7 +320,7 @@ class InvitationViewTestsRegistration(InvitationTestCaseRegistration):
 
         # Nonexistent key use the wrong key template.
         response = self.client.get(reverse('invitation_invited',
-                                           kwargs={ 'invitation_key': sha.new('foo').hexdigest() }))
+                                           kwargs={ 'invitation_key': sha1('foo').hexdigest() }))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'invitation/wrong_invitation_key.html')
 
@@ -423,7 +423,7 @@ class InvitationViewTestsAllauth(InvitationTestCaseAllauth):
 
         # Nonexistent key use the wrong key template.
         response = self.client.get(reverse('invitation_invited',
-                                           kwargs={ 'invitation_key': sha.new('foo').hexdigest() }))
+                                           kwargs={ 'invitation_key': sha1('foo').hexdigest() }))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'invitation/wrong_invitation_key.html')
 

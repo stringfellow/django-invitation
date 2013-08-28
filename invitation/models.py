@@ -4,7 +4,7 @@ import datetime
 from django.db import models
 from django.conf import settings
 from django.utils.http import int_to_base36
-from django.utils.hashcompat import sha_constructor
+from hashlib import sha1
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
 from django.core.mail import send_mail, EmailMultiAlternatives
@@ -70,8 +70,8 @@ class InvitationKeyManager(models.Manager):
         The key for the ``InvitationKey`` will be a SHA1 hash, generated 
         from a combination of the ``User``'s username and a random salt.
         """
-        salt = sha_constructor(str(random.random())).hexdigest()[:5]
-        key = sha_constructor("%s%s%s" % (datetime.datetime.now(), salt, user.username)).hexdigest()
+        salt = sha1(str(random.random())).hexdigest()[:5]
+        key = sha1("%s%s%s" % (datetime.datetime.now(), salt, user.username)).hexdigest()
         if not save:
             return InvitationKey(from_user=user, key='previewkey00000000', recipient=recipient, date_invited=datetime.datetime.now())
         return self.create(from_user=user, key=key, recipient=recipient)
@@ -150,6 +150,7 @@ class InvitationKey(models.Model):
                     'expiration_days': settings.ACCOUNT_INVITATION_DAYS,
                     'from_user': self.from_user,
                     'sender_note': sender_note,
+                    'site': site,
                     'root_url': root_url,
                     'expiration_date': exp_date,
                     'recipient': self.recipient,
