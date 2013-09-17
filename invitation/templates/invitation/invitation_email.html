@@ -20,7 +20,7 @@
 				</div><br>
 				<div>
 					{% trans "Membership is by invitation only, so click the invitation token below to join us now!" %}<br><br>
-					{{token|safe}}
+					<a href="{{invitation_url}}">Join {{site.name}}</a>
 				</div><br>
 				<div>			
 					{% trans "All the best" %},<br>

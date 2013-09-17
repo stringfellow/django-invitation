@@ -10,7 +10,7 @@ else:
     from registration.forms import RegistrationFormTermsOfService
     reg_backend = 'registration.backends.default.DefaultBackend'
     
-from invitation.views import invite, invited, register, send_bulk_invitations, token
+from invitation.views import invite, invited, register, send_bulk_invitations
 
 urlpatterns = patterns('',
     url(r'^invite/complete/$',
@@ -29,7 +29,4 @@ urlpatterns = patterns('',
                 register,
                 { 'backend': reg_backend },
                 name='registration_register'),
-    url(r'^token/(?P<key>\w+)/$', 
-                token,
-                name='invitation_token'),
 )
