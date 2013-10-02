@@ -19,13 +19,13 @@ def get_site(request):
     return site
 
 if getattr(settings, 'INVITATION_USE_ALLAUTH', False):
-    from allauth.socialaccount.views import signup as allauth_signup
-    from allauth.socialaccount.forms import SignupForm as RegistrationForm
+    from allauth.account.views import signup as allauth_signup
+    from allauth.account.forms import SignupForm as RegistrationForm
     registration_template = 'accounts/signup.html'
-    
+
     def registration_register(request, backend, success_url, form_class, disallowed_url, template_name, extra_context):
         return allauth_signup(request, template_name=template_name)
-else:        
+else:
     from registration.views import register as registration_register
     from registration.forms import RegistrationForm
     registration_template = 'registration/registration_form.html'
@@ -67,7 +67,7 @@ def register(request, backend, success_url=None,
             template_name=registration_template,
             wrong_template_name='invitation/wrong_invitation_key.html',
             extra_context=None):
-    
+
     extra_context = extra_context is not None and extra_context.copy() or {}
     if getattr(settings, 'INVITE_MODE', False):
         invitation_key = request.REQUEST.get('invitation_key', False)
@@ -86,7 +86,7 @@ def register(request, backend, success_url=None,
         return registration_register(request, backend, success_url, form_class,
                                      disallowed_url, template_name, extra_context)
 
-#TODO: add sender_note to form 
+#TODO: add sender_note to form
 def invite(request, success_url=None,
             form_class=InvitationKeyForm,
             template_name='invitation/invitation_form.html',
@@ -94,8 +94,8 @@ def invite(request, success_url=None,
     extra_context = extra_context is not None and extra_context.copy() or {}
     remaining_invitations = remaining_invitations_for_user(request.user)
     if request.method == 'POST':
-        form = form_class(data=request.POST, files=request.FILES, 
-                          remaining_invitations=remaining_invitations, 
+        form = form_class(data=request.POST, files=request.FILES,
+                          remaining_invitations=remaining_invitations,
                           user=request.user)
         if form.is_valid():
             recipient = form.cleaned_data["recipient"]
@@ -128,7 +128,7 @@ def send_bulk_invitations(request, success_url=None):
         #to_emails = [(e.split(',')[0],e.split(',')[1]) if e.find(',') else tuple('',e) for e in request.POST['to_emails'].split(';')]
         sender_note = request.POST['sender_note']
         from_email = request.POST['from_email']
-        if len(to_emails)>0 and to_emails[0] != '': 
+        if len(to_emails)>0 and to_emails[0] != '':
             for recipient in to_emails:
                 if recipient[0]:
                     invitation = InvitationKey.objects.create_invitation(request.user, recipient)
@@ -144,7 +144,7 @@ def send_bulk_invitations(request, success_url=None):
     else:
         invitation = InvitationKey.objects.create_invitation(request.user, save=False)
         preview_context = invitation.get_context('--your note will be inserted here--')
-        
+
         context = {
             'title': "Send Bulk Invitations",
             'html_preview': render_to_string('invitation/invitation_email.html', preview_context),
