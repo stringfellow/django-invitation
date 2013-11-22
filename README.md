@@ -27,13 +27,15 @@ previously sent invitations using this format.  This will be removed at a later 
 Django Allauth integration
 --------------------------
 
-***1)*** in your settings point to a accountadapter.py file licated someplace in your project:  
+***1)*** Add the setting `INVITATION_USE_ALLAUTH = True` to your settings.
+
+***2)*** in your settings point to a accountadapter.py file licated someplace in your project:  
 SOCIALACCOUNT_ADAPTER ="myproject.accountadapter.SocialAccountAdapter"
 
-***2)*** add ALLOW_NEW_REGISTRATIONS = True/False to your settings file:
+***3)*** add ALLOW_NEW_REGISTRATIONS = True/False to your settings file:
 This setting allows you to block all new registrations even with a valid invitation.
 
-***3)*** accountadapter.py should look someting like this:  
+***4)*** accountadapter.py should look someting like this:  
 
     from allauth.account.adapter import DefaultAccountAdapter
     from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
