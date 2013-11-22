@@ -21,19 +21,20 @@ from picklefield.fields import PickledObjectField
 if getattr(settings, 'INVITATION_USE_ALLAUTH', False):
     import re
     SHA1_RE = re.compile('^[a-f0-9]{40}$')
-else:    
+else:
     from registration.models import SHA1_RE
 
-try:
+
+def get_site():
+    """Removed from module-level since it breaks syncdb if new project."""
     if Site._meta.installed:
         site = Site.objects.get_current()
         root_url = 'http://%s' % site.domain
     else:
         site = None
         root_url = 'http://localhost'
-except:
-    pass
-    
+    return site, root_url
+
 class InvitationKeyManager(models.Manager):
     def get_key(self, invitation_key):
         """
@@ -134,8 +135,9 @@ class InvitationKey(models.Model):
         self.uses_left -= 1
         self.registrant.add(registrant)
         self.save()
-    
+
     def get_context(self, sender_note=None):
+        site, root_url = get_site()
         invitation_url = root_url + reverse('invitation_invited', kwargs={'invitation_key':self.key})
         exp_date = self.date_invited + datetime.timedelta(days=settings.ACCOUNT_INVITATION_DAYS)
         context = { 'invitation_key': self,
