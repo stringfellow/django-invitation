@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
- 
+
 setup(
     name='django-invitation',
     version='1.0',
@@ -24,4 +24,5 @@ setup(
     # Tells setuptools to download setuptools_hg before running setup.py so
     # it can find the data files under Hg version control.
     setup_requires=['setuptools_hg'],
+    install_requires=['django-picklefield'],
 )
