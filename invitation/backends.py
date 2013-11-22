@@ -6,6 +6,7 @@ else:
 
 from invitation.models import InvitationKey
 
+
 class InvitationBackend(DefaultBackend):
 
     def post_registration_redirect(self, request, user, *args, **kwargs):
@@ -18,7 +19,7 @@ class InvitationBackend(DefaultBackend):
         key = InvitationKey.objects.get_key(invitation_key)
         if key:
             key.mark_used(user)
-            
+
             # delete it from the session too
             del request.session['invitation_key']
 

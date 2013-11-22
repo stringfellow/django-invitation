@@ -1,7 +1,7 @@
 from django.conf import settings
 from invitation.models import InvitationKey
 
- 
+
 def remaining_invitations(request):
     """
     remaining_invitations: determines if the user has any invitations remaining.

@@ -17,7 +17,7 @@ getting django-invitation running in the default setup, to wit:
 """
 
 import datetime
-from hashlib import sha1 
+from hashlib import sha1
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -31,35 +31,35 @@ from django.contrib.sites.models import Site
 from invitation import forms
 from invitation.models import InvitationKey, InvitationUser
 
-allauth_installed = False 
+allauth_installed = False
 try:
     if 'allauth' in settings.INSTALLED_APPS:
         allauth_installed = True
-        print "** allauth installed **"    
+        print "** allauth installed **"
     from allauth.socialaccount.models import SocialApp
 except:
     pass
 
-registration_installed = False    
-try: 
+registration_installed = False
+try:
     import registration
     if 'registration' in settings.INSTALLED_APPS:
         registration_installed = True
-        print "** registration installed **"    
+        print "** registration installed **"
 except:
-    pass        
+    pass
 
-    
+
 class InvitationTestCase(TestCase):
     """
     Base class for the test cases.
-    
-    This sets up one user and two keys -- one expired, one not -- which are 
+
+    This sets up one user and two keys -- one expired, one not -- which are
     used to exercise various parts of the application.
-    
+
     """
     fixtures = ['testserver.json']
-    def setUp(self):        
+    def setUp(self):
         self.sample_user = User.objects.create_user(username='alice',
                                                     password='secret',
                                                     email='alice@example.com')
@@ -67,7 +67,7 @@ class InvitationTestCase(TestCase):
         self.expired_key = InvitationKey.objects.create_invitation(user=self.sample_user)
         self.expired_key.date_invited -= datetime.timedelta(days=settings.ACCOUNT_INVITATION_DAYS + 1)
         self.expired_key.save()
-        
+
         self.sample_registration_data = {
             'invitation_key': self.sample_key.key,
             'username': 'new_user',
@@ -75,81 +75,81 @@ class InvitationTestCase(TestCase):
             'password1': 'secret',
             'password2': 'secret',
             'tos': '1'}
-        
+
         self.sample_allauth_data = {
             'username': 'new_user',
             'email': 'newbie@example.com',
             'password1': 'secret',
             'password2': 'secret',
-            'terms_and_conds': '1'}     
+            'terms_and_conds': '1'}
 
     def assertRedirect(self, response, viewname):
         """Assert that response has been redirected to ``viewname``."""
         self.assertEqual(response.status_code, 302)
         expected_location = 'http://testserver' + reverse(viewname)
-        self.assertEqual(response['Location'], expected_location)      
+        self.assertEqual(response['Location'], expected_location)
 
     def tearDown(self):
         pass
 
 class InvitationTestCaseRegistration(InvitationTestCase):
-    
+
     def setUp(self):
         super(InvitationTestCaseRegistration, self).setUp()
         self.saved_invitation_use_allauth = settings.INVITATION_USE_ALLAUTH
         settings.INVITATION_USE_ALLAUTH = False
         self.saved_socialaccount_providers = settings.SOCIALACCOUNT_PROVIDERS
-        settings.SOCIALACCOUNT_PROVIDERS = {}   
-        
+        settings.SOCIALACCOUNT_PROVIDERS = {}
+
     def tearDown(self):
         super(InvitationTestCaseRegistration, self).tearDown()
-        settings.INVITATION_USE_ALLAUTH = self.saved_invitation_use_allauth 
-        settings.SOCIALACCOUNT_PROVIDERS = self.saved_socialaccount_providers 
-        
+        settings.INVITATION_USE_ALLAUTH = self.saved_invitation_use_allauth
+        settings.SOCIALACCOUNT_PROVIDERS = self.saved_socialaccount_providers
+
 class InvitationTestCaseAllauth(InvitationTestCase):
-    
+
     def setUp(self):
         super(InvitationTestCaseAllauth, self).setUp()
         self.saved_invitation_use_allauth = settings.INVITATION_USE_ALLAUTH
         settings.INVITATION_USE_ALLAUTH = True
         self.saved_socialaccount_providers = settings.SOCIALACCOUNT_PROVIDERS
-        settings.SOCIALACCOUNT_PROVIDERS = {}   
+        settings.SOCIALACCOUNT_PROVIDERS = {}
 
         self.facebook_app = SocialApp(provider='facebook', name='test', key='abc', secret='def')
         self.facebook_app.save()
-        
-        
+
+
     def tearDown(self):
         super(InvitationTestCaseAllauth, self).tearDown()
-        settings.INVITATION_USE_ALLAUTH = self.saved_invitation_use_allauth 
-        settings.SOCIALACCOUNT_PROVIDERS = self.saved_socialaccount_providers             
-            
+        settings.INVITATION_USE_ALLAUTH = self.saved_invitation_use_allauth
+        settings.SOCIALACCOUNT_PROVIDERS = self.saved_socialaccount_providers
+
 
 class InvitationModelTests(InvitationTestCase):
     """
     Tests for the model-oriented functionality of django-invitation.
-    
+
     """
     def test_invitation_key_created(self):
         """
         Test that a ``InvitationKey`` is created for a new key.
-        
+
         """
         self.assertEqual(InvitationKey.objects.count(), 2)
 
     def test_invitation_email(self):
         """
         Test that ``InvitationKey.send_to`` sends an invitation email.
-        
+
         """
         self.sample_key.send_to('bob@example.com')
         self.assertEqual(len(mail.outbox), 1)
 
     def test_key_expiration_condition(self):
         """
-        Test that ``InvitationKey.key_expired()`` returns ``True`` for expired 
+        Test that ``InvitationKey.key_expired()`` returns ``True`` for expired
         keys, and ``False`` otherwise.
-        
+
         """
         # Unexpired user returns False.
         self.failIf(self.sample_key.key_expired())
@@ -160,10 +160,10 @@ class InvitationModelTests(InvitationTestCase):
     def test_expired_user_deletion(self):
         """
         Test ``InvitationKey.objects.delete_expired_keys()``.
-        
-        Only keys whose expiration date has passed are deleted by 
+
+        Only keys whose expiration date has passed are deleted by
         delete_expired_keys.
-        
+
         """
         InvitationKey.objects.delete_expired_keys()
         self.assertEqual(InvitationKey.objects.count(), 1)
@@ -171,11 +171,11 @@ class InvitationModelTests(InvitationTestCase):
     def test_management_command(self):
         """
         Test that ``manage.py cleanupinvitation`` functions correctly.
-        
+
         """
         management.call_command('cleanupinvitation')
         self.assertEqual(InvitationKey.objects.count(), 1)
-        
+
     def test_invitations_remaining(self):
         """Test InvitationUser calculates remaining invitations properly."""
         remaining_invites = InvitationKey.objects.remaining_invitations_for_user
@@ -191,7 +191,7 @@ class InvitationModelTests(InvitationTestCase):
         expected_remaining = settings.INVITATIONS_PER_USER - used
         remaining = remaining_invites(self.sample_user)
         self.assertEqual(remaining, expected_remaining)
-        
+
         # Using Invitationuser via Admin, remaining can be increased
         invitation_user = InvitationUser.objects.get(inviter=self.sample_user)
         new_remaining = 2*settings.INVITATIONS_PER_USER + 1
@@ -209,26 +209,26 @@ class InvitationModelTests(InvitationTestCase):
         remaining = remaining_invites(old_sample_user)
         self.assertEqual(remaining, settings.INVITATIONS_PER_USER)
 
-        
+
 class InvitationFormTests(InvitationTestCase):
     """
     Tests for the forms and custom validation logic included in
     django-invitation.
-    
+
     """
     def setUp(self):
         super(InvitationFormTests, self).setUp()
         self.saved_invitation_blacklist = settings.INVITATION_BLACKLIST
         settings.INVITATION_BLACKLIST = ( '@mydomain.com', )
- 
+
     def tearDown(self):
         settings.INVITATION_BLACKLIST = self.saved_invitation_blacklist
         super(InvitationFormTests, self).tearDown()
-       
+
     def test_invalid_invitation_form(self):
         """
         Test that ``InvitationKeyForm`` enforces email constraints.
-        
+
         """
         invalid_data_dicts = [
             # Invalid email.
@@ -239,7 +239,7 @@ class InvitationFormTests(InvitationTestCase):
             {
              'data': {'email': 'an_address@mydomain.com'},
              'error': ('email', [u"Thanks, but there's no need to invite us!"])
-            }                  
+            }
             ]
 
         for invalid_dict in invalid_data_dicts:
@@ -256,19 +256,19 @@ class InvitationFormTests(InvitationTestCase):
 class InvitationViewTestsRegistration(InvitationTestCaseRegistration):
     """
     Tests for the views included in django-invitation when django-registration is used as the backend.
-    
+
     """
-    
+
     def test_invitation_view(self):
         """
         Test that the invitation view rejects invalid submissions,
         and creates a new key and redirects after a valid submission.
-        
+
         """
         # You need to be logged in to send an invite.
         response = self.client.login(username='alice', password='secret')
         remaining_invitations = InvitationKey.objects.remaining_invitations_for_user(self.sample_user)
-        
+
         # Invalid email data fails.
         response = self.client.post(reverse('invitation_invite'),
                                     data={ 'email': 'example.com' })
@@ -282,7 +282,7 @@ class InvitationViewTestsRegistration(InvitationTestCaseRegistration):
         self.assertRedirect(response, 'invitation_complete')
         self.assertEqual(InvitationKey.objects.count(), 3)
         self.assertEqual(InvitationKey.objects.remaining_invitations_for_user(self.sample_user), remaining_invitations-1)
-        
+
         # Once remaining invitations exhausted, you fail again.
         while InvitationKey.objects.remaining_invitations_for_user(self.sample_user) > 0:
             self.client.post(reverse('invitation_invite'),
@@ -293,12 +293,12 @@ class InvitationViewTestsRegistration(InvitationTestCaseRegistration):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['remaining_invitations'], 0)
         self.failUnless(response.context['form'])
-    
+
     def test_invited_view(self):
         """
         Test that the invited view invite the user from a valid
         key and fails if the key is invalid or has expired.
-       
+
         """
         # Valid key puts use the invited template.
         response = self.client.get(reverse('invitation_invited',
@@ -327,16 +327,16 @@ class InvitationViewTestsRegistration(InvitationTestCaseRegistration):
     def test_register_view(self):
         """
         Test that after registration a key cannot be reused.
-        
-        """        
+
+        """
         # This won't work if registration isn't installed
         if not registration_installed:
             print "** Skipping test requiring django-registration **"
-            return 
-        
+            return
+
         # The first use of the key to register a new user works.
         registration_data = self.sample_registration_data.copy()
-        response = self.client.post(reverse('registration_register'), 
+        response = self.client.post(reverse('registration_register'),
                                     data=registration_data)
         self.assertRedirect(response, 'registration_complete')
         user = User.objects.get(username='new_user')
@@ -345,33 +345,33 @@ class InvitationViewTestsRegistration(InvitationTestCaseRegistration):
 
         # Trying to reuse the same key then fails.
         registration_data['username'] = 'even_newer_user'
-        response = self.client.post(reverse('registration_register'), 
+        response = self.client.post(reverse('registration_register'),
                                     data=registration_data)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 
+        self.assertTemplateUsed(response,
                                 'invitation/wrong_invitation_key.html')
-        try:        
+        try:
             even_newer_user = User.objects.get(username='even_newer_user')
             self.fail("Invitation already used - No user should be created.")
         except User.DoesNotExist:
             pass
- 
+
 class InvitationViewTestsAllauth(InvitationTestCaseAllauth):
     """
     Tests for the views included in django-invitation when django-allauth is used as the backend.
-    
+
     """
-    
+
     def test_invitation_view(self):
         """
         Test that the invitation view rejects invalid submissions,
         and creates a new key and redirects after a valid submission.
-        
+
         """
         # You need to be logged in to send an invite.
         response = self.client.login(username='alice', password='secret')
         remaining_invitations = InvitationKey.objects.remaining_invitations_for_user(self.sample_user)
-        
+
         # Invalid email data fails.
         response = self.client.post(reverse('invitation_invite'),
                                     data={ 'email': 'example.com' })
@@ -385,7 +385,7 @@ class InvitationViewTestsAllauth(InvitationTestCaseAllauth):
         self.assertRedirect(response, 'invitation_complete')
         self.assertEqual(InvitationKey.objects.count(), 3)
         self.assertEqual(InvitationKey.objects.remaining_invitations_for_user(self.sample_user), remaining_invitations-1)
-        
+
         # Once remaining invitations exhausted, you fail again.
         while InvitationKey.objects.remaining_invitations_for_user(self.sample_user) > 0:
             self.client.post(reverse('invitation_invite'),
@@ -396,12 +396,12 @@ class InvitationViewTestsAllauth(InvitationTestCaseAllauth):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['remaining_invitations'], 0)
         self.failUnless(response.context['form'])
-    
+
     def test_invited_view(self):
         """
         Test that the invited view invite the user from a valid
         key and fails if the key is invalid or has expired.
-       
+
         """
         # Valid key puts use the invited template.
         response = self.client.get(reverse('invitation_invited',
@@ -430,31 +430,31 @@ class InvitationViewTestsAllauth(InvitationTestCaseAllauth):
     def test_register_view(self):
         """
         Test that after registration a key cannot be reused.
-        
-        """        
+
+        """
         # This won't work if registration isn't installed
         if not allauth_installed:
             print "** Skipping test requiring django-allauth **"
-            return 
-        
+            return
+
         # The first use of the key to register a new user works.
         registration_data = self.sample_allauth_data.copy()
-        
+
         # User has to go through 'invited' first
         response = self.client.get(reverse('invitation_invited', kwargs={'invitation_key' : self.sample_key.key }))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 
+        self.assertTemplateUsed(response,
                                 'invitation/invited.html')
-        
+
         # If the key gets approved it should be stored in the session
         self.assertIn('invitation_key', self.client.session)
-                
+
         response = self.client.post(reverse('account_signup'), data=registration_data)
         self.assertEqual(response.status_code, 302)
-        
+
         # Check that the key has been removed from the session data
         self.assertNotIn('invitation_key', self.client.session)
-        
+
         # self.assertRedirect(response, 'registration_complete')
         user = User.objects.get(username='new_user')
         key = InvitationKey.objects.get_key(self.sample_key.key)
@@ -464,116 +464,115 @@ class InvitationViewTestsAllauth(InvitationTestCaseAllauth):
         registration_data['username'] = 'even_newer_user'
         response = self.client.post(reverse('invitation_invited', kwargs={'invitation_key' : self.sample_key.key }))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 
+        self.assertTemplateUsed(response,
                                 'invitation/wrong_invitation_key.html')
 
-        
+
 class InviteModeOffTestsRegistration(InvitationTestCaseRegistration):
     """
     Tests for the case where INVITE_MODE is False and django-registration is used as the backend.
-    
-    (The test cases other than this one generally assume that INVITE_MODE is 
+
+    (The test cases other than this one generally assume that INVITE_MODE is
     True.)
-    
+
     """
     def setUp(self):
         super(InviteModeOffTestsRegistration, self).setUp()
         self.saved_invite_mode = settings.INVITE_MODE
         settings.INVITE_MODE = False
         self.saved_socialaccount_providers = settings.SOCIALACCOUNT_PROVIDERS
-        settings.SOCIALACCOUNT_PROVIDERS = {}        
- 
+        settings.SOCIALACCOUNT_PROVIDERS = {}
+
     def tearDown(self):
         settings.INVITE_MODE = self.saved_invite_mode
         settings.SOCIALACCOUNT_PROVIDERS = self.saved_socialaccount_providers
         super(InviteModeOffTestsRegistration, self).tearDown()
-       
+
     def test_invited_view(self):
         """
         Test that the invited view redirects to registration_register.
-       
+
         """
         # This won't work if registration isn't installed
         if not registration_installed:
             print "** Skipping test requiring django-registration **"
-            return 
-        
+            return
+
         response = self.client.get(reverse('invitation_invited',
                             kwargs={ 'invitation_key': self.sample_key.key }))
         self.assertRedirect(response, 'registration_register')
 
     def test_register_view(self):
         """
-        Test register view.  
-        
+        Test register view.
+
         With INVITE_MODE = FALSE, django-invitation just passes this view on to
         django-registration's register.
-       
+
         """
         # This won't work if registration isn't installed
         if not registration_installed:
-            return 
-        
+            return
+
         # get
         response = self.client.get(reverse('registration_register'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'registration/registration_form.html')
-        
+
         # post
-        response = self.client.post(reverse('registration_register'), 
+        response = self.client.post(reverse('registration_register'),
                                     data=self.sample_registration_data)
         self.assertRedirect(response, 'registration_complete')
-        
+
 class InviteModeOffTestsAllauth(InvitationTestCaseAllauth):
     """
     Tests for the case where INVITE_MODE is False and django-allauth is used as the backend.
-    
-    (The test cases other than this one generally assume that INVITE_MODE is 
+
+    (The test cases other than this one generally assume that INVITE_MODE is
     True.)
-    
+
     """
     def setUp(self):
         super(InviteModeOffTestsAllauth, self).setUp()
         self.saved_invite_mode = settings.INVITE_MODE
         settings.INVITE_MODE = False
         self.saved_socialaccount_providers = settings.SOCIALACCOUNT_PROVIDERS
-        settings.SOCIALACCOUNT_PROVIDERS = {}        
- 
+        settings.SOCIALACCOUNT_PROVIDERS = {}
+
     def tearDown(self):
         settings.INVITE_MODE = self.saved_invite_mode
         settings.SOCIALACCOUNT_PROVIDERS = self.saved_socialaccount_providers
         super(InviteModeOffTestsAllauth, self).tearDown()
-       
+
     def test_invited_view(self):
         """
         Test that the invited view redirects to registration_register.
-       
+
         """
         # This won't work if registration isn't installed
         if not allauth_installed:
             print "** Skipping test requiring django-allauth **"
-            return 
-        
+            return
+
         response = self.client.get(reverse('invitation_invited',
                             kwargs={ 'invitation_key': self.sample_key.key }))
         self.assertRedirect(response, 'registration_register')
 
     def test_register_view(self):
         """
-        Test register view.  
-        
+        Test register view.
+
         With INVITE_MODE = FALSE, django-invitation just passes this view on to
         django-registration's register.
-       
+
         """
         # This won't work if registration isn't installed
         if not allauth_installed:
             print "** Skipping test requiring django-allauth **"
-            return 
-        
-        # TODO fix this.  But for now I'm not going to bother since we could simply remove 
-        # invitation altogether if we don't want to use the invitation code, or bypass the URL somehow.  
+            return
+
+        # TODO fix this.  But for now I'm not going to bother since we could simply remove
+        # invitation altogether if we don't want to use the invitation code, or bypass the URL somehow.
         response = self.client.get(reverse('registration_register'))
         self.assertEqual(response.status_code, 302)
         self.assertTemplateUsed(response, 'account/signup.html')
-                        
