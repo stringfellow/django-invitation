@@ -52,7 +52,7 @@ def invited(request, invitation_key=None, invitation_recipient=None, extra_conte
                 if not isinstance(invitation_recipient, tuple):
                     invitation_recipient = (invitation_recipient, None, None)
                 extra_context.update({'invitation_recipient': invitation_recipient})
-                request.session['invitation_key'] = valid_key_obj
+                request.session['invitation_key'] = invitation_key
                 request.session['invitation_recipient'] = invitation_recipient
                 request.session['invitation_context'] = extra_context or {}
 
