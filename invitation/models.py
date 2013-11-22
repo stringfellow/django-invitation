@@ -1,3 +1,4 @@
+import sys
 import os
 import random
 import datetime
@@ -176,10 +177,11 @@ class InvitationUser(models.Model):
     def __unicode__(self):
         return u"InvitationUser for %s" % self.inviter.username
 
-    
+
 def user_post_save(sender, instance, created, **kwargs):
     """Create InvitationUser for user when User is created."""
-    if created:
+    # don't do this in syncdb - tables don't exist and it all goes bad.
+    if created and not 'syncdb' in sys.argv:
         invitation_user = InvitationUser()
         invitation_user.inviter = instance
         invitation_user.invitations_remaining = settings.INVITATIONS_PER_USER
