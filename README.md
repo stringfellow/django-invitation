@@ -8,6 +8,13 @@ Forked from https://github.com/lizrice/django-invitation which is forked from ht
 - Uses the recipient email to bypass email verification in allauth cince we have verified it.
 - Stores the invitation recipient in the model to allow tracking & email verification.
 
+V1.2-sp
+-------
+
+An attempt to make this work better with allauth. Seems like either allauth changed or the docs for 1.1 were just incomplete.
+Lots of weird stuff with changing the key to a tuple and storing that in the DB. Not sure why needed instead of just a string.
+
+
 V1.1
 ----
 ***recipiant added to model (email field):***  
