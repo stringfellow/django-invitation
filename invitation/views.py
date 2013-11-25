@@ -32,6 +32,7 @@ else:
 
 from invitation.models import InvitationKey
 from invitation.forms import InvitationKeyForm
+from invitation.signals import invite_invited
 from invitation.backends import InvitationBackend
 
 is_key_valid = InvitationKey.objects.is_key_valid
@@ -46,11 +47,12 @@ def invited(request, invitation_key=None, invitation_recipient=None, extra_conte
             extra_context.update({'invitation_key': invitation_key})
             valid_key_obj = is_key_valid(invitation_key)
             if valid_key_obj:
+                invite_invited.send(sender=request, invite_key=valid_key_obj)
                 template_name = 'invitation/invited.html'
                 invitation_recipient = valid_key_obj.recipient or invitation_recipient
                 #convert any old invitation email to new format
-                if not isinstance(invitation_recipient, tuple):
-                    invitation_recipient = (invitation_recipient, None, None)
+                if isinstance(invitation_recipient, tuple):
+                    raise TypeError("invitation_recipient is this a tuple?")
                 extra_context.update({'invitation_recipient': invitation_recipient})
                 request.session['invitation_key'] = invitation_key
                 request.session['invitation_recipient'] = invitation_recipient
@@ -98,8 +100,8 @@ def invite(request, success_url=None,
                           remaining_invitations=remaining_invitations,
                           user=request.user)
         if form.is_valid():
-            recipient = form.cleaned_data["recipient"]
-            sender_note = form.cleaned_data["sender_note"]
+            recipient = form.cleaned_data.get("recipient")
+            sender_note = form.cleaned_data.get("sender_note")
             invitation = InvitationKey.objects.create_invitation(request.user, recipient)
             invitation.send_to(sender_note=sender_note)
             # success_url needs to be dynamically generated here; setting a

@@ -39,7 +39,7 @@ class InvitationKeyForm(forms.Form):
         email = cleaned_data.get('email')
 
         if email:
-            cleaned_data['recipient'] = (email,)
+            cleaned_data['recipient'] = email
 
         # Always return the cleaned data, whether you have changed it or
         # not.
