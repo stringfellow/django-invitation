@@ -8,6 +8,11 @@ Forked from https://github.com/lizrice/django-invitation which is forked from ht
 - Uses the recipient email to bypass email verification in allauth cince we have verified it.
 - Stores the invitation recipient in the model to allow tracking & email verification.
 
+v1.2.1-sp
+---------
+
+Bug fix for email send
+
 V1.2-sp
 -------
 

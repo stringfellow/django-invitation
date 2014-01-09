@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-invitation',
-    version='1.0',
+    version='1.2.1-sp',
     description='Built on top of django-registration, it restricts registration to a given number of invited person per active user (strategy introduced by GMail to involve 2.0 users).',
     author='David Larlet',
     author_email='david@larlet.fr',
